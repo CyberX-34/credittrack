@@ -64,8 +64,8 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="form-group">
             <label className="form-label">Full Name</label>
             <input 
               type="text" 
@@ -101,7 +101,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+          <div className="form-group">
             <label className="form-label">Year</label>
             <input 
               type="number" 
@@ -114,7 +114,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+          <div className="form-group">
             <label className="form-label">Username</label>
             <input 
               type="text" 
@@ -126,7 +126,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+          <div className="form-group">
             <label className="form-label">Password</label>
             <input 
               type="password" 
@@ -142,7 +142,7 @@ export default function RegisterPage() {
           <button 
             type="submit" 
             className="btn btn-primary" 
-            style={{ gridColumn: '1 / -1', width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
+            style={{ width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
             disabled={loading}
           >
             {loading ? 'Submitting...' : 'Register Account'}
