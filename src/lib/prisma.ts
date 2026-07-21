@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-export type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+export type TransactionClient = Prisma.TransactionClient
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
