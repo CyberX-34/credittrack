@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name, date, and type are required' }, { status: 400 })
     }
 
-    const newEvent = await prisma.$transaction(async (tx) => {
+    const newEvent = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const event = await tx.event.create({
         data: {
           name,
