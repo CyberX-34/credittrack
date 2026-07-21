@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  password_hash String
+  role          String   // "ADMIN" or "STUDENT"
+  createdAt     DateTime @default(now())
+
+  studentProfile StudentProfile?
+  adminProfile   AdminProfile?
+}
+
+model StudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  rollNo        String   @unique
+  branch        String
+  year          Int
+  totalCredits  Int      @default(0) // Cached total
+  
+  attendanceLogs AttendanceLog[]
+  soloResults    EventResult[]   @relation("SoloStudent")
+  teams          StudentTeam[]
+  notifications  Notification[]
+}
+
+model AdminProfile {
+  id       String @id @default(uuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id])
+  name     String
+  
+  activities ActivityLog[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  type        String   // "SOLO" or "GROUP"
+  description String?
+  
+  results     EventResult[]
+  teams       Team[]
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  teamName  String?
+
+  members   StudentTeam[]
+  result    EventResult?
+}
+
+// Join table for many-to-many relationship between Students and Teams
+model StudentTeam {
+  studentId String
+  teamId    String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+  team      Team           @relation(fields: [teamId], references: [id])
+
+  @@id([studentId, teamId])
+}
+
+model EventResult {
+  id             String   @id @default(uuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id])
+  position       Int?     // 1, 2, 3, or null for participation
+  pointsAwarded  Int      // 5, 3, 1, or 0
+  isReversed     Boolean  @default(false)
+  
+  // Exactly one of these will be set (enforced in application logic)
+  studentId      String?
+  student        StudentProfile? @relation("SoloStudent", fields: [studentId], references: [id])
+  
+  teamId         String?  @unique
+  team           Team?    @relation(fields: [teamId], references: [id])
+
+  // Unique constraint to prevent ties (only one 1st place per event, etc.)
+  @@unique([eventId, position])
+}
+
+model AttendanceLog {
+  id             String         @id @default(uuid())
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+  sessionId      String         // E.g., "Morning", "Afternoon"
+  date           DateTime       // Normalized to start of day
+  
+  isReversed     Boolean        @default(false)
+  creditedById   String         // Admin who recorded it
+
+  // Unique constraint to prevent duplicate attendance for the same day and session
+  @@unique([studentId, sessionId, date])
+}
+
+model ActivityLog {
+  id             String       @id @default(uuid())
+  action         String       // e.g., "AWARD_ATTENDANCE", "REVERSE_RESULT"
+  performedById  String
+  admin          AdminProfile @relation(fields: [performedById], references: [id])
+  timestamp      DateTime     @default(now())
+  details        String       // JSON string storing before/after state and context
+}
+
+model Notification {
+  id             String         @id @default(uuid())
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+  message        String         // e.g., "You earned 5 credits for 1st place in [Event]!"
+  isRead         Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+}
