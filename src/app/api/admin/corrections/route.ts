@@ -70,7 +70,7 @@ export async function POST(request: Request) {
             data: { totalCredits: { decrement: eventResult.pointsAwarded } }
           })
         } else if (eventResult.team) {
-          affectedStudentIds = eventResult.team.members.map(m => m.studentId)
+          affectedStudentIds = eventResult.team.members.map((m: { studentId: string }) => m.studentId)
           for (const sId of affectedStudentIds) {
             await tx.studentProfile.update({
               where: { id: sId },
