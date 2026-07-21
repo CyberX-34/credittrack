@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
+import { prisma, TransactionClient } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 
 export async function POST(request: Request) {
@@ -22,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Admin profile not found' }, { status: 404 })
     }
 
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
       if (type === 'ATTENDANCE') {
         const log = await tx.attendanceLog.findUnique({ where: { id } })
         if (!log || log.isReversed) {
