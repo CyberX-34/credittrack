@@ -4,17 +4,29 @@ import { getSession } from '@/lib/auth'
 import bcrypt from 'bcrypt'
 
 // Get all students
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    let statusFilter = searchParams.get('status') || 'APPROVED'
+    
+    // Normalize status string to match enum, ignoring case
+    statusFilter = statusFilter.toUpperCase()
+    if (!['PENDING', 'APPROVED', 'REJECTED'].includes(statusFilter)) {
+      statusFilter = 'APPROVED'
+    }
+
     const students = await prisma.studentProfile.findMany({
+      where: {
+        user: { status: statusFilter as any } // Cast to any to avoid ts complaining about enum if client isn't updated
+      },
       include: {
         user: {
-          select: { username: true, createdAt: true }
+          select: { username: true, createdAt: true, status: true }
         }
       },
       orderBy: { totalCredits: 'desc' }
@@ -61,6 +73,7 @@ export async function POST(request: Request) {
           username,
           password_hash,
           role: 'STUDENT',
+          status: 'APPROVED',
           studentProfile: {
             create: {
               name,

@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import { Plus, Download } from 'lucide-react'
 
 export default function ManageStudents() {
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PENDING'>('ACTIVE')
   const [students, setStudents] = useState<any[]>([])
+  const [pendingStudents, setPendingStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', rollNo: '', branch: '', year: '', username: '', password: '' })
@@ -12,12 +14,15 @@ export default function ManageStudents() {
   const [error, setError] = useState('')
 
   const fetchStudents = () => {
-    fetch('/api/admin/students')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) setStudents(data)
-        setLoading(false)
-      })
+    setLoading(true)
+    Promise.all([
+      fetch('/api/admin/students?status=APPROVED').then(res => res.json()),
+      fetch('/api/admin/students?status=PENDING').then(res => res.json())
+    ]).then(([activeData, pendingData]) => {
+      if (!activeData.error) setStudents(activeData)
+      if (!pendingData.error) setPendingStudents(pendingData)
+      setLoading(false)
+    })
   }
 
   useEffect(() => {
@@ -49,6 +54,24 @@ export default function ManageStudents() {
     }
   }
 
+  const handleApproveReject = async (studentId: string, action: 'approve' | 'reject') => {
+    try {
+      const res = await fetch('/api/admin/students/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, action })
+      })
+      if (res.ok) {
+        fetchStudents()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to process request')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -68,6 +91,37 @@ export default function ManageStudents() {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <button 
+          onClick={() => setActiveTab('ACTIVE')}
+          style={{ 
+            background: 'none', border: 'none', padding: '0.75rem 1rem', cursor: 'pointer',
+            color: activeTab === 'ACTIVE' ? 'var(--primary)' : 'var(--text-secondary)',
+            borderBottom: activeTab === 'ACTIVE' ? '2px solid var(--primary)' : '2px solid transparent',
+            fontWeight: activeTab === 'ACTIVE' ? 600 : 400
+          }}
+        >
+          Active Students
+        </button>
+        <button 
+          onClick={() => setActiveTab('PENDING')}
+          style={{ 
+            background: 'none', border: 'none', padding: '0.75rem 1rem', cursor: 'pointer',
+            color: activeTab === 'PENDING' ? 'var(--primary)' : 'var(--text-secondary)',
+            borderBottom: activeTab === 'PENDING' ? '2px solid var(--primary)' : '2px solid transparent',
+            fontWeight: activeTab === 'PENDING' ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: '0.5rem'
+          }}
+        >
+          Pending Approvals
+          {pendingStudents.length > 0 && (
+            <span style={{ background: '#EF4444', color: '#fff', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem' }}>
+              {pendingStudents.length}
+            </span>
+          )}
+        </button>
+      </div>
+
       <div className="glass-card" style={{ overflow: 'hidden' }}>
         <div className="table-container">
           <table className="data-table">
@@ -78,25 +132,44 @@ export default function ManageStudents() {
                 <th>Branch</th>
                 <th>Year</th>
                 <th>Username</th>
-                <th>Total Credits</th>
+                {activeTab === 'ACTIVE' ? (
+                  <th>Total Credits</th>
+                ) : (
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
-              ) : students.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No students found.</td></tr>
+              ) : activeTab === 'ACTIVE' && students.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No active students found.</td></tr>
+              ) : activeTab === 'PENDING' && pendingStudents.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No pending registrations.</td></tr>
               ) : (
-                students.map((student) => (
+                (activeTab === 'ACTIVE' ? students : pendingStudents).map((student) => (
                   <tr key={student.id}>
                     <td style={{ fontWeight: 500 }}>{student.name}</td>
                     <td>{student.rollNo}</td>
                     <td>{student.branch}</td>
                     <td>{student.year}</td>
                     <td>{student.user?.username}</td>
-                    <td>
-                      <span className="badge badge-gold">{student.totalCredits}</span>
-                    </td>
+                    {activeTab === 'ACTIVE' ? (
+                      <td>
+                        <span className="badge badge-gold">{student.totalCredits}</span>
+                      </td>
+                    ) : (
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button onClick={() => handleApproveReject(student.id, 'approve')} className="btn" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                            Approve
+                          </button>
+                          <button onClick={() => handleApproveReject(student.id, 'reject')} className="btn" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

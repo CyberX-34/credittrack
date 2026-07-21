@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -81,15 +82,24 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%' }}
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            style={{ width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
             disabled={loading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Logging in...' : 'Sign In'}
           </button>
         </form>
+
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Don't have an account?{' '}
+            <Link href="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+              Register here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

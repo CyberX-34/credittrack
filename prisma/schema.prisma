@@ -9,11 +9,18 @@ datasource db {
   provider = "postgresql"
 }
 
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String   @id @default(uuid())
   username      String   @unique
   password_hash String
   role          String   // "ADMIN" or "STUDENT"
+  status        RegistrationStatus @default(PENDING)
   createdAt     DateTime @default(now())
 
   studentProfile StudentProfile?

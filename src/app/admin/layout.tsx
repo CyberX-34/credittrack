@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, Users, Calendar, Award, Home, Activity } from 'lucide-react'
+import { LogOut, Users, Calendar, Award, Home, Activity, Shield } from 'lucide-react'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: Home },
     { name: 'Students', path: '/admin/students', icon: Users },
+    { name: 'Admins', path: '/admin/admins', icon: Shield },
     { name: 'Events', path: '/admin/events', icon: Calendar },
     { name: 'Record Results', path: '/admin/record-results', icon: Award },
     { name: 'Activity Log', path: '/admin/activity-log', icon: Activity },
