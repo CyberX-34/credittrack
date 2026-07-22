@@ -11,6 +11,8 @@ export const viewport = {
   initialScale: 1,
 };
 
+import Script from "next/script";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,6 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
       </body>
     </html>
   );

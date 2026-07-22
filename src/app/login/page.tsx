@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,6 +10,53 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    // Wait for the script to load
+    const initGoogle = () => {
+      // @ts-expect-error
+      if (window.google?.accounts?.id) {
+        // @ts-expect-error
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'dummy-client-id',
+          callback: async (response: any) => {
+            try {
+              setLoading(true)
+              const res = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential })
+              })
+              const data = await res.json()
+              if (!res.ok) {
+                setError(data.error || 'Google login failed')
+              } else if (data.status === 'PENDING') {
+                setError(data.message)
+              } else {
+                if (data.user?.role === 'ADMIN') {
+                  router.push('/admin')
+                } else {
+                  router.push('/student')
+                }
+              }
+            } catch (err) {
+              setError('Google login error')
+            } finally {
+              setLoading(false)
+            }
+          }
+        })
+        // @ts-expect-error
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleButtonDiv'),
+          { theme: 'outline', size: 'large', type: 'standard' }
+        )
+      } else {
+        setTimeout(initGoogle, 100)
+      }
+    }
+    initGoogle()
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,9 +139,19 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+          <span style={{ padding: '0 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+        </div>
+
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+          <div id="googleButtonDiv"></div>
+        </div>
+
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
               Register here
             </Link>

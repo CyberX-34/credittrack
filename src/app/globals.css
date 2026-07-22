@@ -247,6 +247,12 @@ h3 { font-size: 1.25rem; }
   z-index: 50;
 }
 
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
 .nav-links {
   display: flex;
   gap: 1.5rem;
@@ -342,4 +348,83 @@ h3 { font-size: 1.25rem; }
   width: 100%;
   max-width: 500px;
   box-shadow: var(--shadow-card);
+}
+
+/* Responsive Layout */
+.mobile-topbar {
+  display: none !important;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+@media (max-width: 768px) {
+  .mobile-topbar {
+    display: flex !important;
+  }
+  
+  .sidebar-header {
+    display: none !important;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: -250px;
+    height: 100%;
+    z-index: 50;
+    transition: left 0.3s ease;
+    background: var(--bg-surface);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .main-content {
+    padding: 1rem !important;
+  }
+
+  /* Student Top Navbar Responsive */
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .nav-menu.open {
+    display: flex;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-start;
+  }
+  
+  .logout-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

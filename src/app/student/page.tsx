@@ -53,7 +53,7 @@ export default function StudentDashboard() {
         </div>
       ))}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
         <div>
           <h1 style={{ marginBottom: '0.25rem' }}>Hi, {data.profile.name}</h1>
           <p style={{ color: 'var(--text-secondary)' }}>{data.profile.branch} • Year {data.profile.year}</p>
@@ -69,6 +69,11 @@ export default function StudentDashboard() {
           <h2 style={{ fontSize: '3.5rem', lineHeight: 1, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {data.profile.totalCredits}
           </h2>
+          {data.lastUpdated && (
+            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Last updated: {new Date(data.lastUpdated).toLocaleString()}
+            </p>
+          )}
         </div>
 
         <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
@@ -107,32 +112,34 @@ export default function StudentDashboard() {
       <h3 style={{ marginBottom: '1rem' }}>Activity History</h3>
       <div className="glass-card" style={{ overflow: 'hidden' }}>
         {data.history.length > 0 ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Type</th>
-                <th>Result</th>
-                <th>Points Earned</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.history.map((record: any) => (
-                <tr key={record.id}>
-                  <td style={{ fontWeight: 500 }}>{record.event?.name}</td>
-                  <td>
-                    <span className={`badge ${record.eventType === 'SOLO' ? 'badge-blue' : 'badge-gold'}`}>
-                      {record.eventType === 'GROUP' && record.teamName ? `${record.eventType} (${record.teamName})` : record.eventType}
-                    </span>
-                  </td>
-                  <td>{record.position ? `${record.position}${record.position === 1 ? 'st' : record.position === 2 ? 'nd' : record.position === 3 ? 'rd' : 'th'} Place` : 'Participation'}</td>
-                  <td style={{ color: '#10B981', fontWeight: 600 }}>+{record.pointsAwarded}</td>
-                  <td>{new Date(record.event.date).toLocaleDateString()}</td>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Type</th>
+                  <th>Result</th>
+                  <th>Points Earned</th>
+                  <th>Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.history.map((record: any) => (
+                  <tr key={record.id}>
+                    <td style={{ fontWeight: 500 }}>{record.event?.name}</td>
+                    <td>
+                      <span className={`badge ${record.eventType === 'SOLO' ? 'badge-blue' : 'badge-gold'}`}>
+                        {record.eventType === 'GROUP' && record.teamName ? `${record.eventType} (${record.teamName})` : record.eventType}
+                      </span>
+                    </td>
+                    <td>{record.position ? `${record.position}${record.position === 1 ? 'st' : record.position === 2 ? 'nd' : record.position === 3 ? 'rd' : 'th'} Place` : 'Participation'}</td>
+                    <td style={{ color: '#10B981', fontWeight: 600 }}>+{record.pointsAwarded}</td>
+                    <td>{new Date(record.event.date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
             <div style={{ opacity: 0.3, marginBottom: '1rem' }}>

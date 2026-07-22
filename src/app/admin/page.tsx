@@ -20,7 +20,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ marginBottom: '0.5rem' }}>Dashboard Overview</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Welcome back, Admin.</p>
@@ -68,24 +68,26 @@ export default function AdminDashboard() {
       <h3 style={{ marginBottom: '1rem' }}>Recent Activity</h3>
       <div className="glass-card" style={{ overflow: 'hidden' }}>
         {stats.recentActivity && stats.recentActivity.length > 0 ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Action</th>
-                <th>Admin</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.recentActivity.map((log: any) => (
-                <tr key={log.id}>
-                  <td>{log.action.replace(/_/g, ' ')}</td>
-                  <td>{log.admin?.name || 'Unknown'}</td>
-                  <td>{new Date(log.timestamp).toLocaleString()}</td>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th>Admin</th>
+                  <th>Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stats.recentActivity.map((log: any) => (
+                  <tr key={log.id}>
+                    <td>{log.action.replace(/_/g, ' ')}</td>
+                    <td>{log.admin?.name || 'Unknown'}</td>
+                    <td>{new Date(log.timestamp).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
             No recent activity to show.

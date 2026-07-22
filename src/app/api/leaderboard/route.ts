@@ -4,6 +4,10 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const students = await prisma.studentProfile.findMany({
+      where: {
+        isDeleted: false,
+        user: { status: 'APPROVED' }
+      },
       orderBy: { totalCredits: 'desc' },
       select: {
         id: true,

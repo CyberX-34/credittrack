@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
 }
 
 enum RegistrationStatus {
@@ -16,12 +16,17 @@ enum RegistrationStatus {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  username      String   @unique
-  password_hash String
-  role          String   // "ADMIN" or "STUDENT"
-  status        RegistrationStatus @default(PENDING)
-  createdAt     DateTime @default(now())
+  id                  String   @id @default(uuid())
+  username            String?  @unique
+  password_hash       String?
+  email               String?  @unique
+  googleId            String?  @unique
+  authProvider        String   @default("LOCAL") // "LOCAL" or "GOOGLE"
+  role                String   // "ADMIN" or "STUDENT"
+  status              RegistrationStatus @default(PENDING)
+  failedLoginAttempts Int      @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime @default(now())
 
   studentProfile StudentProfile?
   adminProfile   AdminProfile?
@@ -36,6 +41,7 @@ model StudentProfile {
   branch        String
   year          Int
   totalCredits  Int      @default(0) // Cached total
+  isDeleted     Boolean  @default(false)
   
   attendanceLogs AttendanceLog[]
   soloResults    EventResult[]   @relation("SoloStudent")

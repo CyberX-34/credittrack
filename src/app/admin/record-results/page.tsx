@@ -120,7 +120,7 @@ export default function RecordResults() {
 
       <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
         
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
           <button 
             className={`btn ${formData.type === 'ATTENDANCE' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setFormData({...formData, type: 'ATTENDANCE', message: {text: '', type: ''}} as any)}
@@ -156,7 +156,7 @@ export default function RecordResults() {
                   {students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.rollNo})</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Session ID / Name</label>
                   <input type="text" className="form-input" placeholder="e.g. Morning, Lab 1" required value={formData.sessionId} onChange={e => setFormData({...formData, sessionId: e.target.value})} />
@@ -179,7 +179,7 @@ export default function RecordResults() {
 
               {selectedEvent && (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '12px' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Position</label>
                       <select className="form-input" required value={formData.position} onChange={e => handlePositionChange(e.target.value)}>

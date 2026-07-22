@@ -104,32 +104,36 @@ export default function Leaderboard() {
               <div key={student.id} className="glass-card animate-fade-in" style={{ 
                 padding: '1.5rem 2rem', 
                 display: 'flex', 
+                flexWrap: 'wrap',
                 alignItems: 'center', 
-                gap: '2rem',
+                justifyContent: 'space-between',
+                gap: '1rem',
                 background: bgGradient,
                 border: borderStyle,
                 transform: rank === 1 ? 'scale(1.02)' : 'scale(1)',
                 zIndex: isTop3 ? 10 : 1,
                 boxShadow: rank === 1 ? '0 10px 40px rgba(245, 158, 11, 0.15)' : 'var(--shadow-card)'
               }}>
-                <div style={{ width: '50px', display: 'flex', justifyContent: 'center' }}>
-                  {rank === 1 ? <Medal size={40} color="#FBBF24" /> :
-                   rank === 2 ? <Medal size={34} color="#CBD5E1" /> :
-                   rank === 3 ? <Medal size={30} color="#D97706" /> :
-                   <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>#{rank}</span>}
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
-                  <div style={{ 
-                    width: '48px', height: '48px', borderRadius: '50%', 
-                    background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-secondary)'
-                  }}>
-                    {student.name.charAt(0)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 min-content' }}>
+                  <div style={{ width: '50px', display: 'flex', justifyContent: 'center' }}>
+                    {rank === 1 ? <Medal size={40} color="#FBBF24" /> :
+                     rank === 2 ? <Medal size={34} color="#CBD5E1" /> :
+                     rank === 3 ? <Medal size={30} color="#D97706" /> :
+                     <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>#{rank}</span>}
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: isTop3 ? '#fff' : 'var(--text-primary)' }}>{student.name}</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{student.branch} • Year {student.year}</p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
+                    <div style={{ 
+                      width: '48px', height: '48px', borderRadius: '50%', 
+                      background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-secondary)'
+                    }}>
+                      {student.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: isTop3 ? '#fff' : 'var(--text-primary)' }}>{student.name}</h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{student.branch} • Year {student.year}</p>
+                    </div>
                   </div>
                 </div>
 

@@ -51,12 +51,12 @@ export default function ManageEvents() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ marginBottom: '0.5rem' }}>Events</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Manage events and competitions.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <a href="/api/admin/export?type=events" className="btn btn-secondary" download>
             <Download size={18} />
             Export CSV
@@ -116,7 +116,7 @@ export default function ManageEvents() {
                 <label className="form-label">Event Name</label>
                 <input type="text" className="form-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Date</label>
                   <input type="date" className="form-input" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />

@@ -54,7 +54,7 @@ export default function ActivityLog() {
         <p style={{ color: 'var(--text-secondary)' }}>View system activity and reverse incorrect entries.</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <button 
           className={`btn ${activeTab === 'LOGS' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveTab('LOGS')}
@@ -110,79 +110,83 @@ export default function ActivityLog() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '2rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div className="glass-card" style={{ padding: '1.5rem' }}>
             <h3 style={{ marginBottom: '1rem', color: '#EF4444' }}>Recent Attendance (Eligible for Reversal)</h3>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Session</th>
-                  <th>Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.attendances.map(a => (
-                  <tr key={a.id}>
-                    <td>{a.student?.name} ({a.student?.rollNo})</td>
-                    <td>{a.sessionId}</td>
-                    <td>{new Date(a.date).toLocaleDateString()}</td>
-                    <td>
-                      <button 
-                        className="btn btn-secondary" 
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                        disabled={correcting === a.id}
-                        onClick={() => handleReverse('ATTENDANCE', a.id)}
-                      >
-                        {correcting === a.id ? 'Reversing...' : 'Reverse'}
-                      </button>
-                    </td>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-                {data.attendances.length === 0 && (
-                  <tr><td colSpan={4} style={{ textAlign: 'center' }}>No recent attendance records.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.attendances.map(a => (
+                    <tr key={a.id}>
+                      <td>{a.student?.name} ({a.student?.rollNo})</td>
+                      <td>{a.sessionId}</td>
+                      <td>{new Date(a.date).toLocaleDateString()}</td>
+                      <td>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                          disabled={correcting === a.id}
+                          onClick={() => handleReverse('ATTENDANCE', a.id)}
+                        >
+                          {correcting === a.id ? 'Reversing...' : 'Reverse'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {data.attendances.length === 0 && (
+                    <tr><td colSpan={4} style={{ textAlign: 'center' }}>No recent attendance records.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="glass-card" style={{ padding: '1.5rem' }}>
             <h3 style={{ marginBottom: '1rem', color: '#EF4444' }}>Recent Event Results (Eligible for Reversal)</h3>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Event</th>
-                  <th>Recipient</th>
-                  <th>Position</th>
-                  <th>Pts Awarded</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.results.map(r => (
-                  <tr key={r.id}>
-                    <td>{r.event?.name}</td>
-                    <td>{r.student ? `${r.student.name} (Solo)` : `Team: ${r.team?.teamName || 'Unnamed'}`}</td>
-                    <td>{r.position || 'Participation'}</td>
-                    <td>{r.pointsAwarded}</td>
-                    <td>
-                      <button 
-                        className="btn btn-secondary" 
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                        disabled={correcting === r.id}
-                        onClick={() => handleReverse('RESULT', r.id)}
-                      >
-                        {correcting === r.id ? 'Reversing...' : 'Reverse'}
-                      </button>
-                    </td>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Event</th>
+                    <th>Recipient</th>
+                    <th>Position</th>
+                    <th>Pts Awarded</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-                {data.results.length === 0 && (
-                  <tr><td colSpan={5} style={{ textAlign: 'center' }}>No recent result records.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.results.map(r => (
+                    <tr key={r.id}>
+                      <td>{r.event?.name}</td>
+                      <td>{r.student ? `${r.student.name} (Solo)` : `Team: ${r.team?.teamName || 'Unnamed'}`}</td>
+                      <td>{r.position || 'Participation'}</td>
+                      <td>{r.pointsAwarded}</td>
+                      <td>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                          disabled={correcting === r.id}
+                          onClick={() => handleReverse('RESULT', r.id)}
+                        >
+                          {correcting === r.id ? 'Reversing...' : 'Reverse'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {data.results.length === 0 && (
+                    <tr><td colSpan={5} style={{ textAlign: 'center' }}>No recent result records.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

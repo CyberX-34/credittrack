@@ -72,14 +72,49 @@ export default function ManageStudents() {
     }
   }
 
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!confirm('Are you sure you want to delete this student profile? This cannot be undone.')) return
+    try {
+      const res = await fetch(`/api/admin/students/${studentId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchStudents()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to delete student')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
+  const handleResetPassword = async (studentId: string) => {
+    const newPassword = prompt('Enter new password for this student:')
+    if (!newPassword) return
+    try {
+      const res = await fetch(`/api/admin/students/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, newPassword })
+      })
+      if (res.ok) {
+        alert('Password reset successfully')
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to reset password')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ marginBottom: '0.5rem' }}>Students</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Manage student profiles and accounts.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <a href="/api/admin/export?type=students" className="btn btn-secondary" download>
             <Download size={18} />
             Export CSV
@@ -133,7 +168,10 @@ export default function ManageStudents() {
                 <th>Year</th>
                 <th>Username</th>
                 {activeTab === 'ACTIVE' ? (
-                  <th>Total Credits</th>
+                  <>
+                    <th>Total Credits</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </>
                 ) : (
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 )}
@@ -141,11 +179,11 @@ export default function ManageStudents() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
               ) : activeTab === 'ACTIVE' && students.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No active students found.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>No active students found.</td></tr>
               ) : activeTab === 'PENDING' && pendingStudents.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No pending registrations.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>No pending registrations.</td></tr>
               ) : (
                 (activeTab === 'ACTIVE' ? students : pendingStudents).map((student) => (
                   <tr key={student.id}>
@@ -153,11 +191,23 @@ export default function ManageStudents() {
                     <td>{student.rollNo}</td>
                     <td>{student.branch}</td>
                     <td>{student.year}</td>
-                    <td>{student.user?.username}</td>
+                    <td>{student.user?.username || 'Google User'}</td>
                     {activeTab === 'ACTIVE' ? (
-                      <td>
-                        <span className="badge badge-gold">{student.totalCredits}</span>
-                      </td>
+                      <>
+                        <td>
+                          <span className="badge badge-gold">{student.totalCredits}</span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => handleResetPassword(student.id)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }} disabled={student.user?.authProvider === 'GOOGLE'}>
+                              Reset Password
+                            </button>
+                            <button onClick={() => handleDeleteStudent(student.id)} className="btn" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </>
                     ) : (
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
