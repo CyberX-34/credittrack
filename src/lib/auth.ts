@@ -6,7 +6,7 @@ const getSecretKey = () => {
   return new TextEncoder().encode(secret)
 }
 
-export async function signToken(payload: { userId: string; role: string; username: string }) {
+export async function signToken(payload: { userId: string; role: string; username?: string | null; email?: string | null }) {
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -18,7 +18,7 @@ export async function signToken(payload: { userId: string; role: string; usernam
 export async function verifyToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, getSecretKey())
-    return payload as { userId: string; role: string; username: string }
+    return payload as { userId: string; role: string; username?: string | null; email?: string | null }
   } catch (error) {
     return null
   }

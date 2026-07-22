@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     const token = await signToken({
       userId: user.id,
       role: user.role,
-      username: user.email,
+      email: user.email,
     })
 
     await setAuthCookie(token)
