@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     const students = await prisma.studentProfile.findMany({
       where: {
-        isDeleted: false,
+        ...(statusFilter === 'APPROVED' ? { isDeleted: false } : {}),
         user: { status: statusFilter as any } // Cast to any to avoid ts complaining about enum if client isn't updated
       },
       include: {

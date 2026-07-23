@@ -28,17 +28,34 @@ export async function POST(request: Request) {
     const googleId = payload.sub
     const email = payload.email
 
-    // Check if user or rollNo already exists
     const existingUser = await prisma.user.findFirst({
       where: { 
         OR: [
           { googleId },
           { email }
         ]
-      }
+      },
+      include: { studentProfile: true }
     })
     
     if (existingUser) {
+      if (existingUser.studentProfile?.isDeleted || existingUser.status === 'REJECTED') {
+        // They were deleted or rejected previously, let them retry and go back to PENDING.
+        // We update their profile with the new submitted data and reset status.
+        await prisma.$transaction(async (tx: TransactionClient) => {
+          await tx.user.update({
+            where: { id: existingUser.id },
+            data: { status: 'PENDING' }
+          })
+          if (existingUser.studentProfile) {
+            await tx.studentProfile.update({
+              where: { id: existingUser.studentProfile.id },
+              data: { name, rollNo, branch, year: parseInt(year) }
+            })
+          }
+        })
+        return NextResponse.json({ message: 'Registration resubmitted! Please wait for admin approval.', status: 'PENDING' }, { status: 200 })
+      }
       return NextResponse.json({ error: 'A Google account with this email is already registered. Please login.' }, { status: 400 })
     }
 

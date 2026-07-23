@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Plus, Download } from 'lucide-react'
 
 export default function ManageStudents() {
-  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PENDING'>('ACTIVE')
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PENDING' | 'CORRECTIONS'>('ACTIVE')
   const [students, setStudents] = useState<any[]>([])
   const [pendingStudents, setPendingStudents] = useState<any[]>([])
+  const [corrections, setCorrections] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', rollNo: '', branch: '', year: '', username: '', password: '' })
@@ -17,10 +18,12 @@ export default function ManageStudents() {
     setLoading(true)
     Promise.all([
       fetch('/api/admin/students?status=APPROVED').then(res => res.json()),
-      fetch('/api/admin/students?status=PENDING').then(res => res.json())
-    ]).then(([activeData, pendingData]) => {
+      fetch('/api/admin/students?status=PENDING').then(res => res.json()),
+      fetch('/api/admin/profile-corrections').then(res => res.json())
+    ]).then(([activeData, pendingData, correctionsData]) => {
       if (!activeData.error) setStudents(activeData)
       if (!pendingData.error) setPendingStudents(pendingData)
+      if (!correctionsData.error) setCorrections(correctionsData)
       setLoading(false)
     })
   }
@@ -56,10 +59,44 @@ export default function ManageStudents() {
 
   const handleApproveReject = async (studentId: string, action: 'approve' | 'reject') => {
     try {
+      const student = pendingStudents.find(s => s.id === studentId)
       const res = await fetch('/api/admin/students/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId, action })
+        body: JSON.stringify({ 
+          studentId, 
+          action,
+          name: student?.name,
+          rollNo: student?.rollNo,
+          branch: student?.branch,
+          year: student?.year
+        })
+      })
+      if (res.ok) {
+        fetchStudents()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to process request')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
+  const handleApproveRejectCorrection = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      const req = corrections.find(r => r.id === requestId)
+      const res = await fetch('/api/admin/profile-corrections/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          requestId, 
+          action,
+          name: req?.proposedName,
+          rollNo: req?.proposedRollNo,
+          branch: req?.proposedBranch,
+          year: req?.proposedYear
+        })
       })
       if (res.ok) {
         fetchStudents()
@@ -101,6 +138,32 @@ export default function ManageStudents() {
       } else {
         const data = await res.json()
         alert(data.error || 'Failed to reset password')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
+  const handleUpdateActive = async (studentId: string) => {
+    const student = students.find(s => s.id === studentId)
+    if (!student) return
+    try {
+      const res = await fetch(`/api/admin/students/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: student.name,
+          rollNo: student.rollNo,
+          branch: student.branch,
+          year: student.year
+        })
+      })
+      if (res.ok) {
+        alert('Student updated successfully')
+        fetchStudents()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to update student')
       }
     } catch (err) {
       alert('An error occurred')
@@ -155,6 +218,23 @@ export default function ManageStudents() {
             </span>
           )}
         </button>
+        <button 
+          onClick={() => setActiveTab('CORRECTIONS')}
+          style={{ 
+            background: 'none', border: 'none', padding: '0.75rem 1rem', cursor: 'pointer',
+            color: activeTab === 'CORRECTIONS' ? 'var(--primary)' : 'var(--text-secondary)',
+            borderBottom: activeTab === 'CORRECTIONS' ? '2px solid var(--primary)' : '2px solid transparent',
+            fontWeight: activeTab === 'CORRECTIONS' ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: '0.5rem'
+          }}
+        >
+          Profile Corrections
+          {corrections.length > 0 && (
+            <span style={{ background: '#EAB308', color: '#000', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem' }}>
+              {corrections.length}
+            </span>
+          )}
+        </button>
       </div>
 
       <div className="glass-card" style={{ overflow: 'hidden' }}>
@@ -166,7 +246,7 @@ export default function ManageStudents() {
                 <th>Roll No</th>
                 <th>Branch</th>
                 <th>Year</th>
-                <th>Username</th>
+                {activeTab !== 'CORRECTIONS' && <th>Username</th>}
                 {activeTab === 'ACTIVE' ? (
                   <>
                     <th>Total Credits</th>
@@ -178,19 +258,89 @@ export default function ManageStudents() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
-              ) : activeTab === 'ACTIVE' && students.length === 0 ? (
+            {loading ? (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
+            ) : activeTab === 'CORRECTIONS' ? (
+              corrections.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>No pending profile corrections.</td></tr>
+              ) : (
+                corrections.map((req: any) => (
+                  <tr key={req.id}>
+                    <td>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Original: {req.student.name}</div>
+                        <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '120px', border: '1px solid #EAB308' }} value={req.proposedName} onChange={e => setCorrections(prev => prev.map(r => r.id === req.id ? { ...r, proposedName: e.target.value } : r))} />
+                      </div>
+                    </td>
+                    <td>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Original: {req.student.rollNo}</div>
+                        <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px', border: '1px solid #EAB308' }} value={req.proposedRollNo} onChange={e => setCorrections(prev => prev.map(r => r.id === req.id ? { ...r, proposedRollNo: e.target.value } : r))} />
+                      </div>
+                    </td>
+                    <td>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Original: {req.student.branch}</div>
+                        <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px', border: '1px solid #EAB308' }} value={req.proposedBranch} onChange={e => setCorrections(prev => prev.map(r => r.id === req.id ? { ...r, proposedBranch: e.target.value } : r))} />
+                      </div>
+                    </td>
+                    <td>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Original: {req.student.year}</div>
+                        <input type="number" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '70px', border: '1px solid #EAB308' }} value={req.proposedYear} onChange={e => setCorrections(prev => prev.map(r => r.id === req.id ? { ...r, proposedYear: e.target.value } : r))} />
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleApproveRejectCorrection(req.id, 'approve')} className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                          Approve
+                        </button>
+                        <button onClick={() => handleApproveRejectCorrection(req.id, 'reject')} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )
+            ) : (activeTab === 'ACTIVE' ? students : pendingStudents).length === 0 ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>No active students found.</td></tr>
               ) : activeTab === 'PENDING' && pendingStudents.length === 0 ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>No pending registrations.</td></tr>
               ) : (
                 (activeTab === 'ACTIVE' ? students : pendingStudents).map((student) => (
                   <tr key={student.id}>
-                    <td style={{ fontWeight: 500 }}>{student.name}</td>
-                    <td>{student.rollNo}</td>
-                    <td>{student.branch}</td>
-                    <td>{student.year}</td>
+                    {activeTab === 'ACTIVE' ? (
+                      <>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '120px' }} value={student.name} onChange={e => setStudents(prev => prev.map(s => s.id === student.id ? { ...s, name: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px' }} value={student.rollNo} onChange={e => setStudents(prev => prev.map(s => s.id === student.id ? { ...s, rollNo: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px' }} value={student.branch} onChange={e => setStudents(prev => prev.map(s => s.id === student.id ? { ...s, branch: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="number" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '70px' }} value={student.year} onChange={e => setStudents(prev => prev.map(s => s.id === student.id ? { ...s, year: e.target.value } : s))} />
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '120px' }} value={student.name} onChange={e => setPendingStudents(prev => prev.map(s => s.id === student.id ? { ...s, name: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px' }} value={student.rollNo} onChange={e => setPendingStudents(prev => prev.map(s => s.id === student.id ? { ...s, rollNo: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="text" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '100px' }} value={student.branch} onChange={e => setPendingStudents(prev => prev.map(s => s.id === student.id ? { ...s, branch: e.target.value } : s))} />
+                        </td>
+                        <td>
+                          <input type="number" className="form-input" style={{ padding: '0.25rem 0.5rem', width: '100%', minWidth: '70px' }} value={student.year} onChange={e => setPendingStudents(prev => prev.map(s => s.id === student.id ? { ...s, year: e.target.value } : s))} />
+                        </td>
+                      </>
+                    )}
                     <td>{student.user?.username || 'Google User'}</td>
                     {activeTab === 'ACTIVE' ? (
                       <>
@@ -199,6 +349,9 @@ export default function ManageStudents() {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => handleUpdateActive(student.id)} className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                              Save
+                            </button>
                             <button onClick={() => handleResetPassword(student.id)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }} disabled={student.user?.authProvider === 'GOOGLE'}>
                               Reset Password
                             </button>

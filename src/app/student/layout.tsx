@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, LayoutDashboard, Trophy, Menu, X } from 'lucide-react'
+import { LogOut, LayoutDashboard, Trophy, Menu, X, User } from 'lucide-react'
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 
 export default function ManageAdmins() {
   const [admins, setAdmins] = useState<any[]>([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', username: '', password: '' })
@@ -15,7 +16,10 @@ export default function ManageAdmins() {
     fetch('/api/admin/admins')
       .then(res => res.json())
       .then(data => {
-        if (!data.error) setAdmins(data)
+        if (!data.error) {
+          setAdmins(data.admins || [])
+          setCurrentUser(data.currentUser || null)
+        }
         setLoading(false)
       })
   }
@@ -49,6 +53,41 @@ export default function ManageAdmins() {
     }
   }
 
+  const handleDelete = async (adminId: string) => {
+    if (!confirm('Are you sure you want to delete this admin account? This action will disable their login.')) return
+    try {
+      const res = await fetch(`/api/admin/admins/${adminId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchAdmins()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to delete admin')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
+  const handleResetPassword = async (adminId: string) => {
+    const newPassword = prompt('Enter new password for this admin (min 8 characters):')
+    if (!newPassword) return
+    try {
+      const res = await fetch(`/api/admin/admins/${adminId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword })
+      })
+      if (res.ok) {
+        alert('Password reset successfully')
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to reset password')
+      }
+    } catch (err) {
+      alert('An error occurred')
+    }
+  }
+
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -72,19 +111,39 @@ export default function ManageAdmins() {
                 <th>Name</th>
                 <th>Username</th>
                 <th>Created At</th>
+                {currentUser?.isSuperAdmin && <th style={{ textAlign: 'right' }}>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
+                <tr><td colSpan={currentUser?.isSuperAdmin ? 4 : 3} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
               ) : admins.length === 0 ? (
-                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '2rem' }}>No admins found.</td></tr>
+                <tr><td colSpan={currentUser?.isSuperAdmin ? 4 : 3} style={{ textAlign: 'center', padding: '2rem' }}>No admins found.</td></tr>
               ) : (
                 admins.map((admin) => (
                   <tr key={admin.id}>
-                    <td style={{ fontWeight: 500 }}>{admin.name}</td>
+                    <td style={{ fontWeight: 500 }}>
+                      {admin.name}
+                      {admin.isSuperAdmin && (
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>Superadmin</span>
+                      )}
+                    </td>
                     <td>{admin.user?.username}</td>
                     <td>{new Date(admin.user?.createdAt).toLocaleDateString()}</td>
+                    {currentUser?.isSuperAdmin && (
+                      <td style={{ textAlign: 'right' }}>
+                        {currentUser.id !== admin.id && (
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => handleResetPassword(admin.id)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                              Reset Password
+                            </button>
+                            <button onClick={() => handleDelete(admin.id)} className="btn" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

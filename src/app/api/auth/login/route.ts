@@ -12,7 +12,8 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { username }
+      where: { username },
+      include: { studentProfile: true, adminProfile: true }
     })
 
     if (!user) {
@@ -60,6 +61,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Your account is pending admin approval' }, { status: 403 })
     }
     
+    if (user.studentProfile?.isDeleted || user.adminProfile?.isDeleted) {
+      return NextResponse.json({ error: 'This account has been removed. Please contact your admin.' }, { status: 403 })
+    }
+
     if (user.status === 'REJECTED') {
       return NextResponse.json({ error: 'Your registration was not approved. Contact an administrator.' }, { status: 403 })
     }

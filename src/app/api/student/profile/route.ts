@@ -12,6 +12,9 @@ export async function GET() {
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.userId },
       include: {
+        correctionRequests: {
+          where: { status: 'PENDING' }
+        },
         attendanceLogs: {
           where: { isReversed: false },
           orderBy: { date: 'desc' }

@@ -50,10 +50,12 @@ export async function POST(request: Request) {
       }, { status: 404 })
     }
 
-    // If user was rejected previously, we shouldn't allow them to login. 
-    // Wait, the requirement says "handle the 'reject' case explicitly... a rejected sign-up should be permanently blocked from logging in again."
-    if (user.status === 'REJECTED') {
-      return NextResponse.json({ error: 'Your registration was rejected. Please contact an administrator.' }, { status: 403 })
+    if (user.studentProfile?.isDeleted || user.status === 'REJECTED') {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { status: 'PENDING' }
+      })
+      return NextResponse.json({ error: 'Your account has been submitted for re-approval. Please wait for an admin to approve your access.' }, { status: 403 })
     }
 
     // Link googleId if missing but email matched

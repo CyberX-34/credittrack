@@ -32,7 +32,8 @@ async function main() {
       role: 'ADMIN',
       adminProfile: {
         create: {
-          name: 'Super Admin'
+          name: 'Super Admin',
+          isSuperAdmin: true
         }
       }
     }

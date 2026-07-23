@@ -47,13 +47,28 @@ model StudentProfile {
   soloResults    EventResult[]   @relation("SoloStudent")
   teams          StudentTeam[]
   notifications  Notification[]
+  correctionRequests ProfileCorrectionRequest[]
+}
+
+model ProfileCorrectionRequest {
+  id             String             @id @default(uuid())
+  studentId      String
+  student        StudentProfile     @relation(fields: [studentId], references: [id])
+  proposedName   String
+  proposedRollNo String
+  proposedBranch String
+  proposedYear   Int
+  status         RegistrationStatus @default(PENDING) // PENDING, APPROVED, REJECTED
+  createdAt      DateTime           @default(now())
 }
 
 model AdminProfile {
-  id       String @id @default(uuid())
-  userId   String @unique
-  user     User   @relation(fields: [userId], references: [id])
-  name     String
+  id           String @id @default(uuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id])
+  name         String
+  isSuperAdmin Boolean @default(false)
+  isDeleted    Boolean @default(false)
   
   activities ActivityLog[]
 }

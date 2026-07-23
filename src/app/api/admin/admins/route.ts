@@ -10,7 +10,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const currentAdmin = await prisma.adminProfile.findUnique({ where: { userId: session.userId } })
+
     const admins = await prisma.adminProfile.findMany({
+      where: { isDeleted: false },
       include: {
         user: {
           select: { username: true, createdAt: true, status: true }
@@ -19,7 +22,10 @@ export async function GET() {
       orderBy: { name: 'asc' }
     })
 
-    return NextResponse.json(admins)
+    return NextResponse.json({
+      admins,
+      currentUser: currentAdmin ? { id: currentAdmin.id, isSuperAdmin: currentAdmin.isSuperAdmin } : null
+    })
   } catch (error) {
     console.error('Failed to fetch admins:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
