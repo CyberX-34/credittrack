@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CreditTrack | Gamified Student Dashboard",
   description: "Student credit tracking system",
+  manifest: "/manifest.json",
 };
 
 export const viewport = {

@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#0f1a2e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4ff"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bgGrad1)"/>
+  <g transform="translate(256,270)">
+    <path d="M -110 -90 L -110 -25 C -110 40 -62 80 -22 88
+             L -22 118 L -58 118 C -66 118 -72 124 -72 132
+             L -72 142 C -72 150 -66 156 -58 156
+             L 58 156 C 66 156 72 150 72 142
+             L 72 132 C 72 124 66 118 58 118
+             L 22 118 L 22 88
+             C 62 80 110 40 110 -25 L 110 -90 Z"
+          fill="url(#accentGrad1)"/>
+    <path d="M -110 -90 L -152 -90 C -165 -90 -165 -58 -152 -42
+             C -140 -27 -122 -19 -110 -17"
+          fill="none" stroke="url(#accentGrad1)" stroke-width="13" stroke-linecap="round"/>
+    <path d="M 110 -90 L 152 -90 C 165 -90 165 -58 152 -42
+             C 140 -27 122 -19 110 -17"
+          fill="none" stroke="url(#accentGrad1)" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="0" cy="-2" r="40" fill="#0b1220"/>
+    <text x="0" y="14" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="url(#accentGrad1)">1</text>
+  </g>
+</svg>
