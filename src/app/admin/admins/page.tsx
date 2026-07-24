@@ -11,6 +11,11 @@ export default function ManageAdmins() {
   const [formData, setFormData] = useState({ name: '', username: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
 
   const fetchAdmins = () => {
     fetch('/api/admin/admins')
@@ -88,6 +93,41 @@ export default function ManageAdmins() {
     }
   }
 
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordSubmitting(true)
+    setPasswordError('')
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match')
+      setPasswordSubmitting(false)
+      return
+    }
+    
+    try {
+      const res = await fetch('/api/admin/me/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          currentPassword: passwordData.currentPassword, 
+          newPassword: passwordData.newPassword 
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setPasswordError(data.error)
+      } else {
+        setShowChangePasswordModal(false)
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+        alert('Your password has been changed successfully.')
+      }
+    } catch (err) {
+      setPasswordError('An error occurred')
+    } finally {
+      setPasswordSubmitting(false)
+    }
+  }
+
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -111,14 +151,14 @@ export default function ManageAdmins() {
                 <th>Name</th>
                 <th>Username</th>
                 <th>Created At</th>
-                {currentUser?.isSuperAdmin && <th style={{ textAlign: 'right' }}>Actions</th>}
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={currentUser?.isSuperAdmin ? 4 : 3} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
               ) : admins.length === 0 ? (
-                <tr><td colSpan={currentUser?.isSuperAdmin ? 4 : 3} style={{ textAlign: 'center', padding: '2rem' }}>No admins found.</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>No admins found.</td></tr>
               ) : (
                 admins.map((admin) => (
                   <tr key={admin.id}>
@@ -130,20 +170,25 @@ export default function ManageAdmins() {
                     </td>
                     <td>{admin.user?.username}</td>
                     <td>{new Date(admin.user?.createdAt).toLocaleDateString()}</td>
-                    {currentUser?.isSuperAdmin && (
-                      <td style={{ textAlign: 'right' }}>
-                        {currentUser.id !== admin.id && (
-                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        {currentUser?.id === admin.id && (
+                          <button onClick={() => setShowChangePasswordModal(true)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
+                            Change My Password
+                          </button>
+                        )}
+                        {currentUser?.isSuperAdmin && currentUser?.id !== admin.id && (
+                          <>
                             <button onClick={() => handleResetPassword(admin.id)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}>
                               Reset Password
                             </button>
                             <button onClick={() => handleDelete(admin.id)} className="btn" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                               Delete
                             </button>
-                          </div>
+                          </>
                         )}
-                      </td>
-                    )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -170,7 +215,7 @@ export default function ManageAdmins() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Login Password</label>
-                  <input type="text" className="form-input" required minLength={8} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                  <input type="password" className="form-input" required minLength={8} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                 </div>
               </div>
               
@@ -178,6 +223,43 @@ export default function ManageAdmins() {
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
                   {submitting ? 'Creating...' : 'Create Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showChangePasswordModal && (
+        <div className="modal-overlay">
+          <div className="modal-content animate-fade-in">
+            <h2 style={{ marginBottom: '1.5rem' }}>Change My Password</h2>
+            {passwordError && <div style={{ color: '#EF4444', marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{passwordError}</div>}
+            
+            <form onSubmit={handleChangePasswordSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Current Password</label>
+                  <input type="password" className="form-input" required value={passwordData.currentPassword} onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <input type="password" className="form-input" required minLength={8} value={passwordData.newPassword} onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Confirm New Password</label>
+                  <input type="password" className="form-input" required minLength={8} value={passwordData.confirmPassword} onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})} />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => {
+                  setShowChangePasswordModal(false)
+                  setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+                  setPasswordError('')
+                }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={passwordSubmitting}>
+                  {passwordSubmitting ? 'Changing...' : 'Change Password'}
                 </button>
               </div>
             </form>

@@ -49,3 +49,33 @@ export async function getSession() {
   
   return await verifyToken(token)
 }
+
+import { createRemoteJWKSet } from 'jose'
+
+const googleJWKS = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'))
+
+export interface GoogleJWTPayload {
+  email?: string;
+  sub?: string;
+  aud?: string | string[];
+  [key: string]: any;
+}
+
+export async function verifyGoogleToken(credential: string): Promise<GoogleJWTPayload | null> {
+  try {
+    const audiences = [process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_ID].filter(Boolean) as string[]
+    
+    if (audiences.length === 0) {
+      throw new Error('CRITICAL SECURITY MISCONFIGURATION: Google Client IDs are not set in environment variables. Refusing to verify tokens without an audience check.')
+    }
+
+    const { payload } = await jwtVerify(credential, googleJWKS, {
+      issuer: ['accounts.google.com', 'https://accounts.google.com'],
+      audience: audiences,
+    })
+    return payload as GoogleJWTPayload
+  } catch (error) {
+    console.error('Google token verification failed:', error)
+    return null
+  }
+}

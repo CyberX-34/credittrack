@@ -5,7 +5,11 @@ import { signToken, setAuthCookie } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json()
+    let { username, password } = await request.json()
+    
+    if (typeof username === 'string') {
+      username = username.trim()
+    }
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 })

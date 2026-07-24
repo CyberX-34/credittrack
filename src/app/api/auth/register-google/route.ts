@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma, TransactionClient } from '@/lib/prisma'
+import { verifyGoogleToken } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
@@ -10,14 +11,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`)
-    if (!verifyRes.ok) {
-      return NextResponse.json({ error: 'Invalid Google token' }, { status: 400 })
-    }
-    const payload = await verifyRes.json()
+    const payload = await verifyGoogleToken(credential)
     
     if (!payload || !payload.email) {
-      return NextResponse.json({ error: 'Invalid Google token payload' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid Google token' }, { status: 400 })
     }
 
     // Must be mgits.ac.in
@@ -25,8 +22,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Please use your mgits.ac.in email address' }, { status: 403 })
     }
 
-    const googleId = payload.sub
-    const email = payload.email
+    const googleId = payload.sub as string
+    const email = payload.email as string
 
     const existingUser = await prisma.user.findFirst({
       where: { 

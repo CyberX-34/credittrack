@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma, TransactionClient } from '@/lib/prisma'
-import { signToken, setAuthCookie } from '@/lib/auth'
+import { signToken, setAuthCookie, verifyGoogleToken } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
@@ -9,15 +9,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing credential' }, { status: 400 })
     }
 
-    // Verify token with Google API
-    const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`)
-    if (!verifyRes.ok) {
-      return NextResponse.json({ error: 'Invalid Google token' }, { status: 400 })
-    }
-    const payload = await verifyRes.json()
+    // Verify token locally with Google JWKS
+    const payload = await verifyGoogleToken(credential)
     
     if (!payload || !payload.email) {
-      return NextResponse.json({ error: 'Invalid Google token payload' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid Google token' }, { status: 400 })
     }
 
     // Must be mgits.ac.in
@@ -30,8 +26,8 @@ export async function POST(request: Request) {
       // Optional check, usually good practice
     }
 
-    const googleId = payload.sub
-    const email = payload.email
+    const googleId = payload.sub as string
+    const email = payload.email as string
 
     let user = await prisma.user.findFirst({
       where: { 
